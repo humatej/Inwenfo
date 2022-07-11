@@ -1,7 +1,6 @@
 <template>
-  <div id="main" class="d-flex justify-content-center align-items-center flex-column">
+  <div id="main" class="d-flex justify-content-center align-items-center flex-column overflow-hidden">
     <SearchBar/>
-    <SearchResult v-show="clicked"/>
     <div id="footer" class="footer py-3 text-center">
       <div class="container">
         <div>
@@ -17,18 +16,11 @@ import { defineComponent } from 'vue'
 import { ref } from 'vue'
 
 import SearchBar from './components/SearchBar.vue'
-import SearchResult from './components/SearchResult.vue'
 
 export default defineComponent({
   components: {
     SearchBar,
-    SearchResult
   },
-  data(){
-    const clicked = ref<boolean>(false)
-
-    return { clicked }
-  }
 })
 </script>
 <style lang="scss">

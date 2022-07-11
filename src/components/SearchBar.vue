@@ -1,6 +1,6 @@
 <template>
     <div class="container">
-        <div id="search-bar" class="row">
+        <div :class="showFullResult ? 'pt-res' : ''" id="search-bar" class="row">
             <div class="col-md-7 mx-auto">
                 <div class="input-group">
                     <input type="text" class="form-control" v-model="searchText" placeholder="Search for...">
@@ -19,7 +19,7 @@
                     </thead>
                     <tbody class="rounded-bottom">
                         <tr v-for="result in searchPlaceResult" :key="result"
-                            class="my-auto"  @click="showInfo(result.latitude, result.longitude)">
+                            class="my-auto"  @click="showInfo(result.latitude, result.longitude, result.name)">
                             <th class="align-middle" scope="row">
                                 <p class="text-light">
                                     {{ result.name }}
@@ -33,12 +33,12 @@
                     </tbody>
                 </table>
                 <!-- weather data of the region -->
-                <div class="my-bg" v-show="showFullResult">
+                <div id="weatherResult" class="my-bg overflow-auto" v-show="showFullResult">
                     <h3 class="ps-3 pt-3 text-light">Temperature [°C]</h3>
                     <apexchart
                         class="pe-2"
                         width="100%"
-                        height="20%"
+                        height="80%"
                         :options="temperatureResult.options"
                         :series="temperatureResult.series"
                     >
@@ -47,7 +47,7 @@
                     <apexchart
                         class="pe-2"
                         width="100%"
-                        height="20%"
+                        height="80%"
                         :options="precipitationResult.options"
                         :series="precipitationResult.series"
                     >
@@ -56,7 +56,7 @@
                     <apexchart
                         class="pe-2"
                         width="100%"
-                        height="20%"
+                        height="80%"
                         :options="cloudyResult.options"
                         :series="cloudyResult.series"
                     >   
@@ -197,7 +197,9 @@ export default defineComponent({
                 },
                 yaxis:{
                     name:"Cloudcover",
-                    tickAmount: 3
+                    tickAmount: 3,
+                    min: 0,
+                    max: 100,
                 },
                 stroke: {
                     curve: 'smooth',
@@ -220,6 +222,7 @@ export default defineComponent({
         })
         const showFullResult = ref<boolean>(false)
         const showPlaceResult = ref<boolean>(false)
+        const searching = ref<boolean>(true)
 
         return{
             searchText,
@@ -229,6 +232,7 @@ export default defineComponent({
             cloudyResult,
             showFullResult,
             showPlaceResult,
+            searching,
         }
     },
     components: {
@@ -236,8 +240,15 @@ export default defineComponent({
     },
     watch: {
         async searchText(newVal){
-            console.log(newVal);
-            if(newVal != ''){
+            if(newVal != '' && this.searching){
+                this.showFullResult = false
+                this.showPlaceResult = false
+                this.temperatureResult.series[0].data = []
+                this.precipitationResult.series[0].data = []
+                this.cloudyResult.series[0].data = []
+                this.searchPlaceResult = {}
+
+                this.showFullResult = false
                 const response = await fetch("https://geocoding-api.open-meteo.com/v1/search?name=" + newVal)
                 const data = await response.json()
                 if(data.results){
@@ -251,19 +262,16 @@ export default defineComponent({
                     this.showPlaceResult = false
                 }
             }
-            else if(newVal == ''){
-                this.showFullResult = false
-                this.showPlaceResult = false
-                this.temperatureResult.series[0].data = []
-                this.precipitationResult.series[0].data = []
-                this.cloudyResult.series[0].data = []
-                this.searchPlaceResult = {}
+            if(!this.searching){
+                this.searching = true
             }
         },
     },
     methods:{
-        async showInfo(longitude:number, latitude:number){
+        async showInfo(longitude:number, latitude:number, name:string){
             this.showFullResult = true
+            this.searching = false
+            this.searchText = name
             const response = await fetch("https://api.open-meteo.com/v1/forecast?latitude=" + latitude + "&longitude=" + longitude + "&hourly=temperature_2m,precipitation,cloudcover")
             const data = await response.json()
             //and time an temperature to array of object pairs
@@ -296,10 +304,41 @@ export default defineComponent({
         position: relative;
         z-index: 1;
     }
+    #weatherResult{
+        height: 40%;
+    }
+    tbody tr:hover{
+        background-color: #010035d0;
+        transition: .3s;
+        cursor: pointer
+    }
     .my-bg{
         background-color: #000000b0;
+        transition: .3s;
+    }
+    .pt-res{
+        padding-top: 75vh;
     }
     thead{
         background:#000000ab;
+    }
+    /* ===== Scrollbar CSS ===== */
+    /* Firefox */
+    * {
+        scrollbar-width: auto;
+    }
+
+    /* Chrome, Edge, and Safari */
+    *::-webkit-scrollbar {
+        width: 16px;
+    }
+
+    *::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.219);
+    }
+
+    *::-webkit-scrollbar-thumb {
+        background-color: #171618a4;
+        border-radius: 10px;
     }
 </style>
