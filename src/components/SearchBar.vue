@@ -4,9 +4,6 @@
             <div class="col-md-7 mx-auto">
                 <div class="input-group">
                     <input type="text" class="form-control" v-model="searchText" placeholder="Search for...">
-                    <span class="input-group-btn">
-                        <button class="btn btn-primary" type="button">Go!</button>
-                    </span>
                 </div>
             </div>
         </div>
@@ -172,5 +169,7 @@ export default defineComponent({
 <style lang="scss">
     #search-result{
         overflow: hidden;
+        position: relative;
+        z-index: 1;
     }
 </style>

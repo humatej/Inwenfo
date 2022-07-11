@@ -4,8 +4,8 @@
     <SearchResult v-show="clicked"/>
     <div id="footer" class="footer py-3 text-center">
       <div class="container">
-        <span class="text-muted">&copy; 2022 <a href="https://github.com/humatej">humatej</a></span><br>
-        <span class="text-muted">Thank you <a href="https://www.pexels.com/photo/beautiful-clouds-cloudy-dramatic-209831/">Pixabay</a> for the use of your background image</span>
+        <span class="text-light">&copy; 2022 Matej Hušla<br>
+        full info <a href="https://github.com/humatej/Iwenfo">docs</a></span><br>
       </div>
     </div>
   </div>
@@ -38,11 +38,15 @@ export default defineComponent({
   #main{
     width: 100%;
     height: 100vh;
-    background-image: url("../public/pexels-pixabay-209831.jpg");
+    background-image: url("../public/adventure-5077752_1920.jpg");
+    background-repeat:no-repeat;
+    background-position:center;
   }
   #footer{
     position: fixed;
     bottom: 0;
     width: 100%;
+    z-index: 0;
+    background-color: rgba(0, 0, 0, 0.795);
   }
 </style>
