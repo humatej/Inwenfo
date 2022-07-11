@@ -10,10 +10,10 @@
                 </div>
             </div>
         </div>
-        <div :class="(searchText != '') && (searchText.length > 1) && (searchPlaceResult != null)? 'show' : 'hide'" id="search-result" class="row">
+        <div id="search-result" class="row">
             <div class="col-md-7 mx-auto">
-                <!-- temp search result list -->
-                <table v-show="!showFullResult" class="table table-hover table-dark table-striped">
+                <!-- temp search result list -->                
+                <table v-show="!showFullResult && showPlaceResult" class="table table-hover table-dark table-striped">
                     <thead class="bg-primary">
                         <tr>
                             <th class="col-6" scope="col">City</th>
@@ -25,7 +25,7 @@
                             class="my-auto">
                             <th class="align-middle" scope="row">
                                 <a @click="showInfo(result.latitude, result.longitude)">
-                                    {{result.name}}
+                                    {{ result.name }}
                                 </a>
                             </th>
                             <td class="align-middle">
@@ -36,9 +36,10 @@
                     </tbody>
                 </table>
                 <!-- weather data of the region -->
-                <div v-show="showFullResult">
+                <div v-show="showFullResult" class="bg-dark">
+                    <h1 class="ps-2 pt-2 text-light">Temperature in the region</h1>
                     <apexchart
-                        class="bg-dark pe-2"
+                        class="pe-2"
                         width="100%"
                         :options="searchWeatherResult.options"
                         :series="searchWeatherResult.series"
@@ -67,16 +68,6 @@ export default defineComponent({
                     type:"area",
                     foreColor: "#ccc",
                 },
-                title:{
-                    text:"Temperature in the region",
-                    align:"left",
-                    style:{
-                        fontSize: "24px",
-                        fontFamily: "Helvetica, Arial, sans-serif",
-                        fontWeight: "bold",
-                        color: "#fff",
-                    },
-                },
                 markers: {
                     size: 5,
                     colors: ["#000524"],
@@ -84,9 +75,16 @@ export default defineComponent({
                     strokeWidth: 3,
                 },
                 xaxis:{
-                    type: 'category',
+                    type: 'datetime',
                     tickAmount: 7,
-                    offsetX: 20,
+                },
+                tooltip: {
+                    x: {
+                        format: 'HH:mm dd/MM/yyyy'
+                    },
+                },
+                dataLabels: {
+                    enabled: false,
                 },
                 yaxis:{
                     name:"Temperature",
@@ -106,19 +104,21 @@ export default defineComponent({
             },
             series:[
                 {
-                    name:"Temperature",
+                    name:"temp",
                     data:[],
                 }
             ],
             
         })
         const showFullResult = ref<boolean>(false)
+        const showPlaceResult = ref<boolean>(false)
 
         return{
             searchText,
             searchPlaceResult,
             searchWeatherResult,
             showFullResult,
+            showPlaceResult,
         }
     },
     components: {
@@ -130,13 +130,20 @@ export default defineComponent({
             if(newVal != ''){
                 const response = await fetch("https://geocoding-api.open-meteo.com/v1/search?name=" + newVal)
                 const data = await response.json()
-                this.searchPlaceResult = data.results
-                if(data.results.length > 5){
-                    this.searchPlaceResult = data.results.slice(0, 5)
+                if(data.results){
+                    this.showPlaceResult = true
+                    this.searchPlaceResult = data.results
+                    if(data.results.length > 5){
+                        this.searchPlaceResult = data.results.slice(0, 5)
+                    }
+                }
+                else{
+                    this.showPlaceResult = false
                 }
             }
             else if(newVal == ''){
                 this.showFullResult = false
+                this.showPlaceResult = false
                 this.searchWeatherResult.options.xaxis.categories = []
                 this.searchWeatherResult.series[0].data = []
                 this.searchPlaceResult = {}
@@ -144,70 +151,26 @@ export default defineComponent({
         },
     },
     methods:{
-        formatDate(date:number) {
-            //return date in format day/HH:MM
-            const d = new Date(date)
-            //change return format to day, month HH:MM using toLacaeString()
-            return d.toLocaleString("en-EN",{ weekday: 'short', month: 'short', hour: 'numeric', minute: 'numeric' })
-        },
         async showInfo(longitude:number, latitude:number){
             this.showFullResult = true
             const response = await fetch("https://api.open-meteo.com/v1/forecast?latitude=" + latitude + "&longitude=" + longitude + "&hourly=temperature_2m,relativehumidity_2m,windspeed_10m")
             const data = await response.json()
-            //this.searchWeatherResult.series[0].data = data.hourly.temperature_2m
-            //this.searchWeatherResult.options.xaxis.categories = data.hourly.time
-            //console.log(this.searchWeatherResult.options.xaxis.categories[0])
-            //and time an temperature to array of array pairs
+            //and time an temperature to array of object pairs
             data.hourly.time.forEach((time:number, index:number) => {
-                //convert time to day/HH:mm format
-                let timeString = this.formatDate(time)
                 console.log(data.hourly.temperature_2m[index])
-                this.searchWeatherResult.series[0].data.push({  x:this.formatDate(time), 
-                                                                y:data.hourly.temperature_2m[index]})
+                this.searchWeatherResult.series[0].data = [...this.searchWeatherResult.series[0].data,
+                                                            {  x:time, 
+                                                               y:data.hourly.temperature_2m[index]
+                                                            }
+                                                          ]
             })
-            console.log(this.searchWeatherResult.series[0].data)
         }
     }
 
 })
 </script>
 <style lang="scss">
-    $height: 0%;
-    @mixin height($height){
-        @if($height:0%){
-            animation: fadeOut .5s forwards;
-            $height: 100%;
-        }
-        @else{
-            animation: fadeIn .5s forwards;
-            $height:0%
-        }
-    }
-   //make search-result smooth appear/disappear when displaying/hiding search results
     #search-result{
-        height: $height;
         overflow: hidden;
-    }
-    .show{
-        animation: fadeIn 1s forwards;
-    }
-    .hide{
-        animation: fadeOut 1s forwards;
-    }
-    @keyframes fadeIn {
-        from {
-            height: 0%;
-        }
-        to {
-            height: 100%;
-        }
-    }
-    @keyframes fadeOut {
-        from{
-            height: 100%;
-        }
-        to {
-            height: 0%;
-        } 
     }
 </style>
