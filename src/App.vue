@@ -4,8 +4,10 @@
     <SearchResult v-show="clicked"/>
     <div id="footer" class="footer py-3 text-center">
       <div class="container">
-        <span class="text-light">&copy; 2022 Matej Hušla<br>
+        <div>
+          <span class="text-light">&copy; 2022 Matej Hušla<br>
         full info <a href="https://github.com/humatej/Iwenfo">docs</a></span><br>
+        </div>
       </div>
     </div>
   </div>
@@ -47,6 +49,9 @@ export default defineComponent({
     bottom: 0;
     width: 100%;
     z-index: 0;
-    background-color: rgba(0, 0, 0, 0.795);
+  }
+  #footer a{
+    font-weight: bold;
+    color: rgb(231, 211, 24);
   }
 </style>
