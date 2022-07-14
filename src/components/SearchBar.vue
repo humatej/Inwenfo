@@ -5,6 +5,7 @@
                 <div class="container">
                     <div v-show="showFullResult" class="row mx-auto">
                         <div class="col-md-6">
+                            <p class="text-center text-light my-labels">Pressure</p>
                             <apexchart
                             :options="actualPressure.options"
                             :series="actualPressure.series"
@@ -13,6 +14,7 @@
                             </apexchart>
                         </div>
                         <div class="col-md-6">
+                            <p class="text-center text-light my-labels">Wind speed</p>
                             <apexchart
                             :options="actualWind.options"
                             :series="actualWind.series"
@@ -293,7 +295,7 @@ export default defineComponent({
                 grid: {
                     padding: {
                         top: -10,
-                        bottom: 10,
+                        bottom: 15,
                     }
                 },
                 fill: {
@@ -364,7 +366,7 @@ export default defineComponent({
                 grid: {
                     padding: {
                         top: -10,
-                        bottom: 10,
+                        bottom: 15,
                     }
                 },
                 fill: {
@@ -410,9 +412,6 @@ export default defineComponent({
                 min: 0,
             }
         })
-
-
-
         return{
             searchText,
             tdHeight,
@@ -472,6 +471,7 @@ export default defineComponent({
                 }
                 else{
                     this.showPlaceResult = false
+                    this.searchPlaceResult = {}
                     table.style.height = "0px"
                 }
             }
@@ -571,6 +571,12 @@ export default defineComponent({
     .my-bg{
         background-color: #000000b0;
         transition: .3s;
+    }
+    .my-labels{
+        position: relative;
+        z-index: 1;
+        top:80%;
+        color:#ccc;
     }
     .pt-res{
         padding-top: 65vh;
